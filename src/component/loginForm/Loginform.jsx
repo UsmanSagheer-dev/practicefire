@@ -1,23 +1,33 @@
-import React, { useState } from 'react';
-import { Container, TextField, Button, Typography, Box, CssBaseline } from '@mui/material';
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { Auth } from '../../config/firebase';
-import { Link } from 'react-router-dom'; // Import Link from react-router-dom
+import React, { useState } from "react";
+import {
+  Container,
+  TextField,
+  Button,
+  Typography,
+  Box,
+  CssBaseline,
+  InputAdornment,
+  IconButton,
+} from "@mui/material";
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser } from "../../store/authSlice/authslice";
+import { Link } from "react-router-dom";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 
 export const LoginForm = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const dispatch = useDispatch();
+  const { user, loading, error } = useSelector((state) => state.auth);
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    signInWithEmailAndPassword(Auth, email, password)
-      .then((userCredential) => {
-        const user = userCredential.user;
-        console.log("User signed in:", user);
-      })
-      .catch((error) => {
-        console.error("Error signing in:", error.code, error.message);
-      });
+    dispatch(loginUser({ email, password }));
+  };
+
+  const handleClickShowPassword = () => {
+    setShowPassword((prev) => !prev);
   };
 
   return (
@@ -25,14 +35,14 @@ export const LoginForm = () => {
       <CssBaseline />
       <Box
         sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
           mt: 8,
           p: 2,
-          border: '1px solid #ddd',
-          borderRadius: '8px',
+          border: "1px solid #ddd",
+          borderRadius: "8px",
         }}
       >
         <Typography variant="h5">Facebook</Typography>
@@ -55,20 +65,38 @@ export const LoginForm = () => {
             required
             fullWidth
             label="Password"
-            type="password"
+            type={showPassword ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={handleClickShowPassword} edge="end">
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
           />
-          <Button type="submit" fullWidth variant="contained" sx={{ mt: 2, mb: 2 }}>
-            Log In
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            sx={{ mt: 2, mb: 2 }}
+            disabled={loading}
+          >
+            {loading ? "Logging in..." : "Log In"}
           </Button>
         </form>
-        <Typography variant="body2" sx={{ textAlign: 'center' }}>
-          <a href="#" style={{ textDecoration: 'none' }}>Forgot password?</a>
+        {error && <Typography color="error">{error}</Typography>}
+        <Typography variant="body2" sx={{ textAlign: "center" }}>
+          <a href="#" style={{ textDecoration: "none" }}>
+            Forgot password?
+          </a>
         </Typography>
-        <Typography variant="body2" sx={{ textAlign: 'center', mt: 2 }}>
+        <Typography variant="body2" sx={{ textAlign: "center", mt: 2 }}>
           Don't have an account?{" "}
-          <Link to="/signup" style={{ textDecoration: 'none', color: 'blue' }}>
+          <Link to="/signup" style={{ textDecoration: "none", color: "blue" }}>
             Sign Up
           </Link>
         </Typography>
