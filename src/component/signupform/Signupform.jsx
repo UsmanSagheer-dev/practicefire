@@ -1,17 +1,18 @@
-// SignupForm.js
-import React, { useState } from 'react';
-import { collection, addDoc, setDoc, doc } from "firebase/firestore"; 
-import { Container, TextField, Button, Typography, Box, CssBaseline, Grid } from '@mui/material';
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { Auth, db } from '../../config/firebase'; // Adjust path as necessary
-import { Link } from 'react-router-dom';
+import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { signupUser } from "../../store/authSlice/authslice";
+import { Container, CssBaseline, Box, Typography, Grid, TextField, Button } from "@mui/material";
+import { Link } from "react-router-dom";
 
 export const SignupForm = ({ toggleForm }) => {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const dispatch = useDispatch();
+
+  // Define state variables
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -21,27 +22,20 @@ export const SignupForm = ({ toggleForm }) => {
     }
 
     try {
-        const userCredential = await createUserWithEmailAndPassword(Auth, email, password);
-        const user = userCredential.user;
-      
-        // Save user information to Firestore with the UID as the document ID
-        const docRef = await setDoc(doc(db, "users", user.uid), {
-          uid: user.uid,
-          firstName: firstName,
-          lastName: lastName,
-          email: user.email, // Store email from the userCredential
-        });
-      
-        console.log("User document written with UID: ", user.uid);
-        alert("Sign up successful!");
-      } catch (error) {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        alert(`Error signing up: ${errorMessage}`);
-        console.error("Error signing up:", errorCode, errorMessage);
-      }
-      
-    
+      await dispatch(
+        signupUser({ firstName, lastName, email, password })
+      ).unwrap();
+      alert("Sign up successful!");
+
+  
+      setFirstName("");
+      setLastName("");
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
+    } catch (error) {
+      alert(`Error signing up: ${error}`);
+    }
   };
 
   return (
@@ -49,14 +43,14 @@ export const SignupForm = ({ toggleForm }) => {
       <CssBaseline />
       <Box
         sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
           mt: 8,
           p: 2,
-          border: '1px solid #ddd',
-          borderRadius: '8px',
+          border: "1px solid #ddd",
+          borderRadius: "8px",
         }}
       >
         <Typography variant="h5">Sign Up</Typography>
@@ -117,13 +111,18 @@ export const SignupForm = ({ toggleForm }) => {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
           />
-          <Button type="submit" fullWidth variant="contained" sx={{ mt: 2, mb: 2 }}>
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            sx={{ mt: 2, mb: 2 }}
+          >
             Sign Up
           </Button>
         </form>
-        <Typography variant="body2" sx={{ textAlign: 'center', mt: 2 }}>
+        <Typography variant="body2" sx={{ textAlign: "center", mt: 2 }}>
           Already have an account?{" "}
-          <Link to="/" style={{ textDecoration: 'none', color: 'blue' }}>
+          <Link to="/" style={{ textDecoration: "none", color: "blue" }}>
             Log in
           </Link>
         </Typography>
